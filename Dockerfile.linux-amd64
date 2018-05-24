@@ -1,0 +1,93 @@
+FROM rust:1.65.0 AS builder
+
+LABEL org.opencontainers.image.description="SensorFu's Rust build container for amd64 musl"
+LABEL org.opencontainers.image.source=https://github.com/sensorfu/rust-env
+
+ENV TARGET="x86_64-unknown-linux-musl"
+
+ARG LIBRESSL=libressl-3.6.1
+
+# Match with version from Rust:
+# https://github.com/rust-lang/rust/blob/1.65.0/src/ci/docker/scripts/musl.sh#L28
+# See https://github.com/rust-lang/rust/issues/61264#issuecomment-501321748
+ARG MUSL=musl-1.1.24
+
+RUN rustup target add ${TARGET}
+COPY cargo.config "${CARGO_HOME}/config"
+
+WORKDIR /work
+
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get -y update && \
+    apt-get -y install \
+        clang \
+    && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY sigs/* ./
+RUN \
+    gpg --no-tty --import libressl.asc && \
+    gpg --no-tty --import musl.pub
+
+RUN curl -fO https://www.musl-libc.org/releases/${MUSL}.tar.gz && \
+    gpg --no-tty --verify ${MUSL}.tar.gz.asc ${MUSL}.tar.gz && \
+    tar zxf ${MUSL}.tar.gz && \
+    cd ${MUSL} && \
+    ./configure CC=clang CFLAGS="-fPIC" --prefix=/opt/musl --enable-shared=no && \
+    make V=1 -j4 && \
+    make V=1 install
+
+ENV PATH=/opt/musl/bin:$PATH
+
+# We do Musl build hence $CC and $LD should point to correct tool
+ENV CC_x86_64_unknown_linux_musl=musl-clang
+
+# Musl is missing some kernel specific header files. Do symbolic links to fix
+# this.
+RUN \
+    ln -s /usr/include/linux /opt/musl/include/ && \
+    ln -s /usr/include/x86_64-linux-gnu/asm /opt/musl/include/ && \
+    ln -s /usr/include/asm-generic /opt/musl/include/
+
+RUN curl -fO https://cdn.openbsd.org/pub/OpenBSD/LibreSSL/${LIBRESSL}.tar.gz && \
+    gpg --no-tty --verify ${LIBRESSL}.tar.gz.asc ${LIBRESSL}.tar.gz && \
+    tar zxf ${LIBRESSL}.tar.gz && \
+    cd ${LIBRESSL} && \
+    ./configure CC=musl-clang LD=musl-clang CFLAGS="-fPIC" --prefix=/opt/libressl --enable-shared=no --sysconfdir=/etc && \
+    cp openssl.cnf cert.pem /etc/ssl && \
+    make V=1 -j4 && make -j4 check || ( cat tests/test-suite.log ; exit 1 ) && \
+    make install
+
+FROM rust:1.65.0-slim
+
+ENV TARGET="x86_64-unknown-linux-musl"
+
+RUN rustup target add ${TARGET}
+COPY cargo.config "${CARGO_HOME}/config"
+
+COPY --from=builder /opt /opt
+
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get -y update && \
+    apt-get -y install \
+        bison \
+        clang \
+        file \
+        flex \
+        make \
+        protobuf-compiler \
+    && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV PATH=/opt/musl/bin:$PATH
+
+# We do Musl build hence $CC and $LD should point to correct tool
+ENV CC_x86_64_unknown_linux_musl=musl-clang
+
+ENV X86_64_UNKNOWN_LINUX_MUSL_OPENSSL_LIB_DIR=/opt/libressl/lib
+ENV X86_64_UNKNOWN_LINUX_MUSL_OPENSSL_INCLUDE_DIR=/opt/libressl/include
+
+ENV OPENSSL_DIR=/opt/libressl
+ENV OPENSSL_STATIC=1
+
+WORKDIR /

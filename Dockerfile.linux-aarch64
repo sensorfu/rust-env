@@ -1,0 +1,70 @@
+FROM rust:1.65.0 AS builder
+
+LABEL org.opencontainers.image.description="SensorFu's Rust build container for aarch64 musl"
+LABEL org.opencontainers.image.source=https://github.com/sensorfu/rust-env
+
+ENV TARGET="aarch64-unknown-linux-musl"
+
+ARG LIBRESSL=libressl-3.6.1
+
+ARG TOOLCHAIN_AARCH64="aarch64--musl--stable-2020.02-2"
+ARG TC_AARCH64_URL="https://toolchains.bootlin.com/downloads/releases/toolchains/aarch64/tarballs/${TOOLCHAIN_AARCH64}.tar.bz2"
+
+WORKDIR /opt
+RUN curl -f -o- ${TC_AARCH64_URL} | tar -xjf -
+
+RUN ln -s /opt/${TOOLCHAIN_AARCH64} /opt/aarch64
+
+ENV PATH="${PATH}:/opt/aarch64/bin"
+
+ENV CC_aarch64_unknown_linux_musl=aarch64-buildroot-linux-musl-gcc
+ENV CXX_aarch64_unknown_linux_musl=aarch64-buildroot-linux-musl-g++
+ENV LD_aarch64_unknown_linux_musl=aarch64-buildroot-linux-musl-ld
+
+WORKDIR /work
+
+COPY sigs/* ./
+RUN gpg --no-tty --import libressl.asc
+
+RUN curl -fO https://cdn.openbsd.org/pub/OpenBSD/LibreSSL/${LIBRESSL}.tar.gz && \
+    gpg --no-tty --verify ${LIBRESSL}.tar.gz.asc ${LIBRESSL}.tar.gz && \
+    tar zxf ${LIBRESSL}.tar.gz && \
+    cd ${LIBRESSL} && \
+    CC=${CC_aarch64_unknown_linux_musl} \
+    CXX=${CXX_aarch64_unknown_linux_musl} \
+    LD=${LD_aarch64_unknown_linux_musl} \
+    ./configure --prefix=/opt/libressl --host=aarch64-linux-musl --enable-shared=no --sysconfdir=/etc && \
+    make V=1 -j4 && \
+    make install
+
+FROM rust:1.65.0-slim
+
+ENV TARGET="aarch64-unknown-linux-musl"
+
+RUN rustup target add ${TARGET}
+COPY cargo.config "${CARGO_HOME}/config"
+
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get -y update && \
+    apt-get -y install \
+        bison \
+        clang \
+        file \
+        flex \
+        make \
+        protobuf-compiler \
+    && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /opt /opt
+
+ENV PATH="${PATH}:/opt/aarch64/bin"
+
+ENV CC_aarch64_unknown_linux_musl=aarch64-buildroot-linux-musl-gcc
+ENV CXX_aarch64_unknown_linux_musl=aarch64-buildroot-linux-musl-g++
+ENV LD_aarch64_unknown_linux_musl=aarch64-buildroot-linux-musl-ld
+
+ENV AARCH64_UNKNOWN_LINUX_MUSL_OPENSSL_LIB_DIR=/opt/libressl/lib
+ENV AARCH64_UNKNOWN_LINUX_MUSL_OPENSSL_INCLUDE_DIR=/opt/libressl/include
+
+WORKDIR /

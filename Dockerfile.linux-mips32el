@@ -1,0 +1,33 @@
+FROM rust:1.65.0
+
+LABEL org.opencontainers.image.description="SensorFu's Rust build container for mips32 musl"
+LABEL org.opencontainers.image.source=https://github.com/sensorfu/rust-env
+
+ENV TARGET="mipsel-unknown-linux-musl"
+
+ARG TOOLCHAIN_MIPS="mips32el--musl--stable-2020.02-2"
+ARG TC_MIPS_URL="https://toolchains.bootlin.com/downloads/releases/toolchains/mips32el/tarballs/${TOOLCHAIN_MIPS}.tar.bz2"
+
+RUN rustup target add ${TARGET}
+COPY cargo.config "${CARGO_HOME}/config"
+
+WORKDIR /opt
+RUN curl -o- ${TC_MIPS_URL} | tar -xjf -
+WORKDIR /
+
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get -y update && \
+    apt-get -y install \
+        bison \
+        clang \
+        file \
+        flex \
+        make \
+        protobuf-compiler \
+    && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV PATH="${PATH}:/opt/${TOOLCHAIN_MIPS}/bin"
+ENV CC_mipsel_unknown_linux_musl=mipsel-buildroot-linux-musl-gcc
+ENV CXX_mipsel_unknown_linux_musl=mipsel-buildroot-linux-musl-g++
+ENV LD_mipsel_unknown_linux_musl=mipsel-buildroot-linux-musl-ld
