@@ -5,9 +5,16 @@ on:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+-[0-9]+'
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     strategy:
       matrix:
         container:
@@ -27,8 +34,8 @@ jobs:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build
@@ -38,5 +45,5 @@ jobs:
           file: ./Dockerfile.${{ matrix.container }}
           push: true
           tags: |
-            ghcr.io/sensorfu/rust-env:${{ matrix.container }}-latest
-            ghcr.io/sensorfu/rust-env:${{ matrix.container }}-${{ github.ref_name }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.container }}-latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.container }}-${{ github.ref_name }}
