@@ -1,4 +1,4 @@
-FROM rust:1.65.0 AS builder
+FROM rust:1.66.0 AS builder
 
 LABEL org.opencontainers.image.description="SensorFu's Rust build container for amd64 glibc"
 LABEL org.opencontainers.image.source=https://github.com/sensorfu/rust-env
@@ -21,7 +21,7 @@ RUN curl -fO https://cdn.openbsd.org/pub/OpenBSD/LibreSSL/${LIBRESSL}.tar.gz && 
 
 RUN cargo install cargo-bom
 
-FROM rust:1.65.0-slim
+FROM rust:1.66.0-slim
 
 COPY --from=builder /opt /opt
 COPY --from=builder /etc/ssl/openssl.cnf /etc/ssl/openssl.cnf
