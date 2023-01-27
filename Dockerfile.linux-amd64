@@ -1,4 +1,4 @@
-FROM rust:1.66.1 AS builder
+FROM rust:1.67.0 AS builder
 
 LABEL org.opencontainers.image.description="SensorFu's Rust build container for amd64 musl"
 LABEL org.opencontainers.image.source=https://github.com/sensorfu/rust-env
@@ -58,7 +58,7 @@ RUN curl -fO https://cdn.openbsd.org/pub/OpenBSD/LibreSSL/${LIBRESSL}.tar.gz && 
     make V=1 -j4 && make -j4 check || ( cat tests/test-suite.log ; exit 1 ) && \
     make install
 
-FROM rust:1.66.1-slim
+FROM rust:1.67.0-slim
 
 ENV TARGET="x86_64-unknown-linux-musl"
 

@@ -1,4 +1,4 @@
-FROM rust:1.66.1
+FROM rust:1.67.0
 
 LABEL org.opencontainers.image.description="SensorFu's Rust build container for mips32 musl"
 LABEL org.opencontainers.image.source=https://github.com/sensorfu/rust-env
