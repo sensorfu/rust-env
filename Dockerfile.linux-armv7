@@ -1,4 +1,4 @@
-FROM rust:1.66.1 AS builder
+FROM rust:1.67.0 AS builder
 
 LABEL org.opencontainers.image.description="SensorFu's Rust build container for armv7 musl"
 LABEL org.opencontainers.image.source=https://github.com/sensorfu/rust-env
@@ -37,7 +37,7 @@ RUN curl -fO https://cdn.openbsd.org/pub/OpenBSD/LibreSSL/${LIBRESSL}.tar.gz && 
     make V=1 -j4 && \
     make install
 
-FROM rust:1.66.1-slim
+FROM rust:1.67.0-slim
 
 ENV TARGET="armv7-unknown-linux-musleabihf"
 
