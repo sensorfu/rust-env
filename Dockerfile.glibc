@@ -3,7 +3,7 @@ FROM rust:1.67.0 AS builder
 LABEL org.opencontainers.image.description="SensorFu's Rust build container for amd64 glibc"
 LABEL org.opencontainers.image.source=https://github.com/sensorfu/rust-env
 
-ARG LIBRESSL=libressl-3.6.1
+ARG LIBRESSL=libressl-3.6.2
 
 WORKDIR /work
 

@@ -5,7 +5,7 @@ LABEL org.opencontainers.image.source=https://github.com/sensorfu/rust-env
 
 ENV TARGET="armv7-unknown-linux-musleabihf"
 
-ARG LIBRESSL=libressl-3.6.1
+ARG LIBRESSL=libressl-3.6.2
 
 ARG TOOLCHAIN_ARM7="armv7-eabihf--musl--stable-2020.02-2"
 ARG TC_ARM7_URL="https://toolchains.bootlin.com/downloads/releases/toolchains/armv7-eabihf/tarballs/${TOOLCHAIN_ARM7}.tar.bz2"

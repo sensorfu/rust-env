@@ -5,7 +5,7 @@ LABEL org.opencontainers.image.source=https://github.com/sensorfu/rust-env
 
 ENV TARGET="x86_64-unknown-linux-musl"
 
-ARG LIBRESSL=libressl-3.6.1
+ARG LIBRESSL=libressl-3.6.2
 
 # Match with version from Rust:
 # https://github.com/rust-lang/rust/blob/1.65.0/src/ci/docker/scripts/musl.sh#L28
