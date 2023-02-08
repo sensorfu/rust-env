@@ -4,7 +4,7 @@ REPOSITORY = sensorfu/rust-env
 DOCKER = docker
 
 # Rust version dash our container version
-VERSION = 1.67.0-0
+VERSION = 1.67.0-1
 
 build: glibc linux-amd64 linux-armv7 linux-aarch64 linux-mips32el
 push: push-glibc push-linux-amd64 push-linux-armv7 push-linux-aarch64
