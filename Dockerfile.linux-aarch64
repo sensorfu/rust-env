@@ -5,7 +5,7 @@ LABEL org.opencontainers.image.source=https://github.com/sensorfu/rust-env
 
 ENV TARGET="aarch64-unknown-linux-musl"
 
-ARG LIBRESSL=libressl-3.6.1
+ARG LIBRESSL=libressl-3.6.2
 
 ARG TOOLCHAIN_AARCH64="aarch64--musl--stable-2020.02-2"
 ARG TC_AARCH64_URL="https://toolchains.bootlin.com/downloads/releases/toolchains/aarch64/tarballs/${TOOLCHAIN_AARCH64}.tar.bz2"
