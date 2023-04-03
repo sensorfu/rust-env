@@ -1,4 +1,4 @@
-FROM rust:1.67.0 AS builder
+FROM rust:1.68.2 AS builder
 
 LABEL org.opencontainers.image.description="SensorFu's Rust build container for amd64 musl"
 LABEL org.opencontainers.image.source=https://github.com/sensorfu/rust-env
@@ -8,7 +8,7 @@ ENV TARGET="x86_64-unknown-linux-musl"
 ARG LIBRESSL=libressl-3.6.2
 
 # Match with version from Rust:
-# https://github.com/rust-lang/rust/blob/1.65.0/src/ci/docker/scripts/musl.sh#L28
+# https://github.com/rust-lang/rust/blob/1.68.2/src/ci/docker/scripts/musl.sh#L28
 # See https://github.com/rust-lang/rust/issues/61264#issuecomment-501321748
 ARG MUSL=musl-1.1.24
 
@@ -58,7 +58,7 @@ RUN curl -fO https://cdn.openbsd.org/pub/OpenBSD/LibreSSL/${LIBRESSL}.tar.gz && 
     make V=1 -j4 && make -j4 check || ( cat tests/test-suite.log ; exit 1 ) && \
     make install
 
-FROM rust:1.67.0-slim
+FROM rust:1.68.2-slim
 
 ENV TARGET="x86_64-unknown-linux-musl"
 
