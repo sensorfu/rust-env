@@ -1,31 +1,31 @@
-FROM rust:1.68.2 AS builder
+FROM rust:1.69.0 AS builder
 
 LABEL org.opencontainers.image.description="SensorFu's Rust build container for amd64 glibc"
 LABEL org.opencontainers.image.source=https://github.com/sensorfu/rust-env
 
-ARG LIBRESSL=libressl-3.6.2
+# ARG LIBRESSL=libressl-3.6.2
 
 WORKDIR /work
 
-COPY sigs/* ./
-RUN gpg --no-tty --import libressl.asc
-
-RUN curl -fO https://cdn.openbsd.org/pub/OpenBSD/LibreSSL/${LIBRESSL}.tar.gz && \
-    gpg --no-tty --verify ${LIBRESSL}.tar.gz.asc ${LIBRESSL}.tar.gz && \
-    tar zxf ${LIBRESSL}.tar.gz && \
-    cd ${LIBRESSL} && \
-    ./configure --prefix=/opt/libressl --enable-shared=no --sysconfdir=/etc && \
-    cp openssl.cnf cert.pem /etc/ssl && \
-    make V=1 -j4 && make -j4 check || ( cat tests/test-suite.log ; exit 1 ) && \
-    make install
+# COPY sigs/* ./
+# RUN gpg --no-tty --import libressl.asc
+#
+# RUN curl -fO https://cdn.openbsd.org/pub/OpenBSD/LibreSSL/${LIBRESSL}.tar.gz && \
+#     gpg --no-tty --verify ${LIBRESSL}.tar.gz.asc ${LIBRESSL}.tar.gz && \
+#     tar zxf ${LIBRESSL}.tar.gz && \
+#     cd ${LIBRESSL} && \
+#     ./configure --prefix=/opt/libressl --enable-shared=no --sysconfdir=/etc && \
+#     cp openssl.cnf cert.pem /etc/ssl && \
+#     make V=1 -j4 && make -j4 check || ( cat tests/test-suite.log ; exit 1 ) && \
+#     make install
 
 RUN cargo install cargo-bom
 
-FROM rust:1.68.2-slim
+FROM rust:1.69.0-slim
 
-COPY --from=builder /opt /opt
-COPY --from=builder /etc/ssl/openssl.cnf /etc/ssl/openssl.cnf
-COPY --from=builder /etc/ssl/cert.pem /etc/ssl/cert.pem
+# COPY --from=builder /opt /opt
+# COPY --from=builder /etc/ssl/openssl.cnf /etc/ssl/openssl.cnf
+# COPY --from=builder /etc/ssl/cert.pem /etc/ssl/cert.pem
 COPY --from=builder /usr/local/cargo/bin/cargo-bom /usr/local/bin
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -39,7 +39,7 @@ RUN apt-get -y update && \
     && \
     rm -rf /var/lib/apt/lists/*
 
-ENV OPENSSL_DIR=/opt/libressl
-ENV OPENSSL_STATIC=1
+# ENV OPENSSL_DIR=/opt/libressl
+# ENV OPENSSL_STATIC=1
 
 WORKDIR /

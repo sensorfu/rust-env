@@ -1,14 +1,14 @@
-FROM rust:1.68.2 AS builder
+FROM rust:1.69.0 AS builder
 
 LABEL org.opencontainers.image.description="SensorFu's Rust build container for amd64 musl"
 LABEL org.opencontainers.image.source=https://github.com/sensorfu/rust-env
 
 ENV TARGET="x86_64-unknown-linux-musl"
 
-ARG LIBRESSL=libressl-3.6.2
+# ARG LIBRESSL=libressl-3.6.2
 
 # Match with version from Rust:
-# https://github.com/rust-lang/rust/blob/1.68.2/src/ci/docker/scripts/musl.sh#L28
+# https://github.com/rust-lang/rust/blob/1.69.0/src/ci/docker/scripts/musl.sh#L28
 # See https://github.com/rust-lang/rust/issues/61264#issuecomment-501321748
 ARG MUSL=musl-1.1.24
 
@@ -49,16 +49,16 @@ RUN \
     ln -s /usr/include/x86_64-linux-gnu/asm /opt/musl/include/ && \
     ln -s /usr/include/asm-generic /opt/musl/include/
 
-RUN curl -fO https://cdn.openbsd.org/pub/OpenBSD/LibreSSL/${LIBRESSL}.tar.gz && \
-    gpg --no-tty --verify ${LIBRESSL}.tar.gz.asc ${LIBRESSL}.tar.gz && \
-    tar zxf ${LIBRESSL}.tar.gz && \
-    cd ${LIBRESSL} && \
-    ./configure CC=musl-clang LD=musl-clang CFLAGS="-fPIC" --prefix=/opt/libressl --enable-shared=no --sysconfdir=/etc && \
-    cp openssl.cnf cert.pem /etc/ssl && \
-    make V=1 -j4 && make -j4 check || ( cat tests/test-suite.log ; exit 1 ) && \
-    make install
+# RUN curl -fO https://cdn.openbsd.org/pub/OpenBSD/LibreSSL/${LIBRESSL}.tar.gz && \
+#     gpg --no-tty --verify ${LIBRESSL}.tar.gz.asc ${LIBRESSL}.tar.gz && \
+#     tar zxf ${LIBRESSL}.tar.gz && \
+#     cd ${LIBRESSL} && \
+#     ./configure CC=musl-clang LD=musl-clang CFLAGS="-fPIC" --prefix=/opt/libressl --enable-shared=no --sysconfdir=/etc && \
+#     cp openssl.cnf cert.pem /etc/ssl && \
+#     make V=1 -j4 && make -j4 check || ( cat tests/test-suite.log ; exit 1 ) && \
+#     make install
 
-FROM rust:1.68.2-slim
+FROM rust:1.69.0-slim
 
 ENV TARGET="x86_64-unknown-linux-musl"
 
@@ -84,10 +84,10 @@ ENV PATH=/opt/musl/bin:$PATH
 # We do Musl build hence $CC and $LD should point to correct tool
 ENV CC_x86_64_unknown_linux_musl=musl-clang
 
-ENV X86_64_UNKNOWN_LINUX_MUSL_OPENSSL_LIB_DIR=/opt/libressl/lib
-ENV X86_64_UNKNOWN_LINUX_MUSL_OPENSSL_INCLUDE_DIR=/opt/libressl/include
+# ENV X86_64_UNKNOWN_LINUX_MUSL_OPENSSL_LIB_DIR=/opt/libressl/lib
+# ENV X86_64_UNKNOWN_LINUX_MUSL_OPENSSL_INCLUDE_DIR=/opt/libressl/include
 
-ENV OPENSSL_DIR=/opt/libressl
-ENV OPENSSL_STATIC=1
+# ENV OPENSSL_DIR=/opt/libressl
+# ENV OPENSSL_STATIC=1
 
 WORKDIR /

@@ -1,11 +1,11 @@
-FROM rust:1.68.2 AS builder
+FROM rust:1.69.0 AS builder
 
 LABEL org.opencontainers.image.description="SensorFu's Rust build container for armv7 musl"
 LABEL org.opencontainers.image.source=https://github.com/sensorfu/rust-env
 
 ENV TARGET="armv7-unknown-linux-musleabihf"
 
-ARG LIBRESSL=libressl-3.6.2
+# ARG LIBRESSL=libressl-3.6.2
 
 ARG TOOLCHAIN_ARM7="armv7-eabihf--musl--stable-2020.02-2"
 ARG TC_ARM7_URL="https://toolchains.bootlin.com/downloads/releases/toolchains/armv7-eabihf/tarballs/${TOOLCHAIN_ARM7}.tar.bz2"
@@ -23,21 +23,21 @@ ENV LD_armv7_unknown_linux_musleabihf=arm-buildroot-linux-musleabihf-ld
 
 WORKDIR /work
 
-COPY sigs/* ./
-RUN gpg --no-tty --import libressl.asc
+# COPY sigs/* ./
+# RUN gpg --no-tty --import libressl.asc
 
-RUN curl -fO https://cdn.openbsd.org/pub/OpenBSD/LibreSSL/${LIBRESSL}.tar.gz && \
-    gpg --no-tty --verify ${LIBRESSL}.tar.gz.asc ${LIBRESSL}.tar.gz && \
-    tar zxf ${LIBRESSL}.tar.gz && \
-    cd ${LIBRESSL} && \
-    CC=${CC_armv7_unknown_linux_musleabihf} \
-    CXX=${CXX_armv7_unknown_linux_musleabihf} \
-    LD=${LD_armv7_unknown_linux_musleabihf} \
-    ./configure --prefix=/opt/libressl --host=armv7-linux-musleabihf --enable-shared=no --sysconfdir=/etc && \
-    make V=1 -j4 && \
-    make install
+# RUN curl -fO https://cdn.openbsd.org/pub/OpenBSD/LibreSSL/${LIBRESSL}.tar.gz && \
+#     gpg --no-tty --verify ${LIBRESSL}.tar.gz.asc ${LIBRESSL}.tar.gz && \
+#     tar zxf ${LIBRESSL}.tar.gz && \
+#     cd ${LIBRESSL} && \
+#     CC=${CC_armv7_unknown_linux_musleabihf} \
+#     CXX=${CXX_armv7_unknown_linux_musleabihf} \
+#     LD=${LD_armv7_unknown_linux_musleabihf} \
+#     ./configure --prefix=/opt/libressl --host=armv7-linux-musleabihf --enable-shared=no --sysconfdir=/etc && \
+#     make V=1 -j4 && \
+#     make install
 
-FROM rust:1.68.2-slim
+FROM rust:1.69.0-slim
 
 ENV TARGET="armv7-unknown-linux-musleabihf"
 
@@ -64,7 +64,7 @@ ENV CC_armv7_unknown_linux_musleabihf=arm-buildroot-linux-musleabihf-gcc
 ENV CXX_armv7_unknown_linux_musleabihf=arm-buildroot-linux-musleabihf-g++
 ENV LD_armv7_unknown_linux_musleabihf=arm-buildroot-linux-musleabihf-ld
 
-ENV ARMV7_UNKNOWN_LINUX_MUSLEABIHF_OPENSSL_LIB_DIR=/opt/libressl/lib
-ENV ARMV7_UNKNOWN_LINUX_MUSLEABIHF_OPENSSL_INCLUDE_DIR=/opt/libressl/include
+# ENV ARMV7_UNKNOWN_LINUX_MUSLEABIHF_OPENSSL_LIB_DIR=/opt/libressl/lib
+# ENV ARMV7_UNKNOWN_LINUX_MUSLEABIHF_OPENSSL_INCLUDE_DIR=/opt/libressl/include
 
 WORKDIR /
